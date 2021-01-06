@@ -8,20 +8,20 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
                     level=logging.INFO)
 
 logger = logging.getLogger(__name__)
-TOKEN = 'YOURTELEGRAMBOTTOKEN'
+TOKEN = '1205938982:AAHtuIxO4Y55fOFCy3GQnpuC8IAUi9R7n7s'
 
 # Define a few command handlers. These usually take the two arguments update and
 # context. Error handlers also receive the raised TelegramError object in error.
 def start(update, context):
-    """Send a message when the command /start is issued."""
+    """Bajına"""
     update.message.reply_text('Hi!')
 
 def help(update, context):
-    """Send a message when the command /help is issued."""
+    """Amcıx"""
     update.message.reply_text('Help!')
 
 def echo(update, context):
-    """Echo the user message."""
+    """Sikal"""
     update.message.reply_text(update.message.text)
 
 def error(update, context):
@@ -29,7 +29,7 @@ def error(update, context):
     logger.warning('Update "%s" caused error "%s"', update, context.error)
 
 def main():
-    """Start the bot."""
+    """İ am not your friend. my friend"""
     # Create the Updater and pass it your bot's token.
     # Make sure to set use_context=True to use the new context based callbacks
     # Post version 12 this will no longer be necessary
@@ -52,7 +52,7 @@ def main():
     updater.start_webhook(listen="0.0.0.0",
                           port=int(PORT),
                           url_path=TOKEN)
-    updater.bot.setWebhook('https://yourherokuappname.herokuapp.com/' + TOKEN)
+    updater.bot.setWebhook('https://bitig-bot.herokuapp.com/' + TOKEN)
 
     # Run the bot until you press Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT. This should be used most of the time, since
