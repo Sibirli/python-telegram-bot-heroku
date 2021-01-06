@@ -1,6 +1,10 @@
 import logging
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 import os
+import sys
+import re
+from collections import OrderedDict
+from functools import reduce
 PORT = int(os.environ.get('PORT', 5000))
 
 # Enable logging
@@ -22,37 +26,126 @@ def help(update, context):
 
     
     
-global prssmall, prsbig
+
+cli_mode = len(sys.argv) > 1
+
+if not cli_mode:
+    import telebot
+    bot = telebot.TeleBot('1205938982:AAHtuIxO4Y55fOFCy3GQnpuC8IAUi9R7n7s')
+
+bitig_soft_digraph_dict = OrderedDict([
+    ('rö',    '𐰼𐰇'),
+    ('yal',    '𐰖𐰞'),
+    ('tj',    'ть'),
+    ('dj',    'дь'),
+    ('lj',    'ль'),
+    ('nj',    'нь'),
+    ('rj',    'рь'),
+    ('sj',    'сь'),
+    ('zj',    'зь'),
+    ('tsj',   'ць'),
+    ('tcj',   'чь'),
+])
+
+bitig_apostrophe_digraph_dict = OrderedDict([
+    ('rö',    '𐰼𐰇'),
+    ('yal',    '𐰖𐰞'),
+    ('qj',    'ґʼj'),
+    ('kj',    'кʼj'),
+    ('fj',    'фʼj'),
+    ('vj',    'вʼj'),
+    ('wj',    'ввʼj'),
+    ('hj',    'гʼj'),
+    ('xj',    'хʼj'),
+    ('mj',    'мʼj'),
+    ('svja',  'свя'), # *ь non-normal // tbh no need, but current OG-fags
+    ('tsvja', 'цвя'),
+    ('dzvja', 'дзвя'),
+    ('tjmja', 'тьмя'),
+])
+
+bitig_jotted_digraph_dict = OrderedDict([
+    ('ja',    'я'),
+    ('je',    'є'),
+    ('ji',    'ї'),
+    ('jy',    'ї'),
+    ('ju',    'ю'),
+])
+
+bitig_letter_dict = OrderedDict([
+    ('ctc',   'щ'),
+    ('tc',    'ч'),
+    ('ts',    'ц'),
+    ('a',     'а'),
+    ('b',     'б'),
+    ('c',     'ш'),
+    ('d',     'д'),
+    ('e',     'е'),
+    ('f',     'ф'),
+    ('g',     'ж'),
+    ('h',     'г'),
+    ('i',     'і'),
+    ('j',     'й'),
+    ('k',     'к'),
+    ('l',     'л'),
+    ('m',     'м'),
+    ('n',     'н'),
+    ('o',     'о'),
+    ('ö',     '𐰇'),
+    ('p',     'п'),
+    ('q',     'ґ'),
+    ('r',     'р'),
+    ('s',     'с'),
+    ('t',     'т'),
+    ('u',     'у'),
+    ('v',     'в'),
+    ('w',     'вв'),
+    ('x',     'х'),
+    ('y',     '𐰖'),
+    ('z',     'з'),
+    ('\'',    'ʼ'),
+])
+
+patterns_dicts = [(re.compile("(%s)" % '|'.join(dict.keys())), dict) for dict in (
+    bitig_soft_digraph_dict,
+    bitig_apostrophe_digraph_dict,
+    bitig_jotted_digraph_dict,
+    bitig_letter_dict,
+)]
 
 
-prssmall = dict([('а', "a"), ('ә', "a'"), ('б', 'b'), ('д', 'd'), ('е', 'e'), ('ф', 'f'), ('г', 'g'), ('ғ', "g'"),
-            ('х', 'h'), ('һ', 'h'), ('і', "i"), ('и', "i'"), ('й', "i'"), ('ж', 'j'), ('к', 'k'), ('л', 'l'),
-            ('м', 'm'), ('н', 'n'), ('ң', "n'"), ('о', 'o'), ('ө', "o'"), ('п', 'p'), ('р', 'r'), ('с', 's'),
-            ('ш', "s'"), ('ч', "c'"), ('т', 't'), ('ұ', 'u'), ('ү', "u'"), ('в', 'v'), ('ы', 'y'), ('у', "y'"),
-            ('з', 'z'), ('қ', 'q')
-            ])
 
-prsbig = dict([('А', "A"), ('Ә', "A'"), ('Б', 'B'), ('Д', 'D'), ('Е', 'E'), ('Ф', 'F'), ('Г', 'G'), ('Ғ', "G'"),
-           ('Х', 'H'), ('Һ', 'H'), ('І', "I"), ('И', "I'"), ('Й', "I'"), ('Ж', 'J'), ('К', 'K'), ('Л', 'L'),
-           ('М', 'M'), ('Н', 'N'), ('Ң', "N'"), ('О', 'O'), ('Ө', "O'"), ('П', 'P'), ('Р', 'R'), ('С', 'S'),
-           ('Ш', "S'"), ('Ч', "C'"), ('Т', 'T'), ('Ұ', 'U'), ('Ү', "U'"), ('В', 'V'), ('Ы', 'Y'), ('У', "Y'"),
-           ('З', 'Z'), ('Қ', 'Q')
-          ])
+def is_bitik(str):
+    return re.search(r"[a-z\']", str)
 
-def latinize(msg):
-    global prsbig, prssmall
-    nmsg = ""
-    for ch in msg:
-        if ch in prssmall:
-            nmsg += prssmall[ch]
-        elif ch in prsbig:
-            nmsg += prsbig[ch]
+
+
+def xlate(s, pattern_dict):
+    regex, dict = pattern_dict
+    return regex.sub(lambda x: dict[x.group()], s)
+
+
+def xlate_all(s):
+    return reduce(xlate, patterns_dicts, s)
+
+
+if cli_mode:
+    bitik = str(sys.argv[1]).lower()
+    if is_bitik(bitik):
+        runes = xlate_all(bitik)
+        print(runes)
+else:
+    @bot.message_handler(content_types=['text', 'photo'])
+    @bot.edited_message_handler(content_types=['text', 'photo'])
+    def reply(message):
+        if message.content_type == 'text':
+            bitik = message.text
         else:
-           nmsg += ch
-    return nmsg
-
-def main() :
-     print(latinize('е там өмір қалай бауырым, не жаңалық, Әлібөғңқ'))
+            bitik = message.caption
+        bitik = bitik.lower()
+        if is_bitik(bitik):
+            runes = xlate_all(bitik)
+            bot.send_message(message.chat.id, runes)
     
     
     
