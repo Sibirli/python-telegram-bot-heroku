@@ -29,9 +29,6 @@ def help(update, context):
 
 cli_mode = len(sys.argv) > 1
 
-if not cli_mode:
-    import telebot
-
 bitig_soft_digraph_dict = OrderedDict([
     ('rö',    '𐰼𐰇'),
     ('yal',    '𐰖𐰞'),
