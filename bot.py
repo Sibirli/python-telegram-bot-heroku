@@ -13,12 +13,12 @@ TOKEN = '1205938982:AAHtuIxO4Y55fOFCy3GQnpuC8IAUi9R7n7s'
 # Define a few command handlers. These usually take the two arguments update and
 # context. Error handlers also receive the raised TelegramError object in error.
 def start(update, context):
-    """Bajına"""
-    update.message.reply_text('Hi!')
+    """if /start"""
+    update.message.reply_text('men skiš mišem')
 
 def help(update, context):
-    """Amcıx"""
-    update.message.reply_text('Help!')
+    """if /help"""
+    update.message.reply_text('skiš mišem!')
 
     
     
