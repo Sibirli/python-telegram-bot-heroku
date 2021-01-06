@@ -31,7 +31,6 @@ cli_mode = len(sys.argv) > 1
 
 if not cli_mode:
     import telebot
-    bot = telebot.TeleBot('1205938982:AAHtuIxO4Y55fOFCy3GQnpuC8IAUi9R7n7s')
 
 bitig_soft_digraph_dict = OrderedDict([
     ('rö',    '𐰼𐰇'),
