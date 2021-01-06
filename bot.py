@@ -1,10 +1,6 @@
 import logging
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 import os
-import sys
-import re
-from collections import OrderedDict
-from functools import reduce
 PORT = int(os.environ.get('PORT', 5000))
 
 # Enable logging
@@ -27,121 +23,69 @@ def help(update, context):
     
     
 
-cli_mode = len(sys.argv) > 1
 
-bitig_soft_digraph_dict = OrderedDict([
-    ('rö',    '𐰼𐰇'),
-    ('yal',    '𐰖𐰞'),
-    ('tj',    'ть'),
-    ('dj',    'дь'),
-    ('lj',    'ль'),
-    ('nj',    'нь'),
-    ('rj',    'рь'),
-    ('sj',    'сь'),
-    ('zj',    'зь'),
-    ('tsj',   'ць'),
-    ('tcj',   'чь'),
-])
-
-bitig_apostrophe_digraph_dict = OrderedDict([
-    ('rö',    '𐰼𐰇'),
-    ('yal',    '𐰖𐰞'),
-    ('qj',    'ґʼj'),
-    ('kj',    'кʼj'),
-    ('fj',    'фʼj'),
-    ('vj',    'вʼj'),
-    ('wj',    'ввʼj'),
-    ('hj',    'гʼj'),
-    ('xj',    'хʼj'),
-    ('mj',    'мʼj'),
-    ('svja',  'свя'), # *ь non-normal // tbh no need, but current OG-fags
-    ('tsvja', 'цвя'),
-    ('dzvja', 'дзвя'),
-    ('tjmja', 'тьмя'),
-])
-
-bitig_jotted_digraph_dict = OrderedDict([
-    ('ja',    'я'),
-    ('je',    'є'),
-    ('ji',    'ї'),
-    ('jy',    'ї'),
-    ('ju',    'ю'),
-])
-
-bitig_letter_dict = OrderedDict([
-    ('ctc',   'щ'),
-    ('tc',    'ч'),
-    ('ts',    'ц'),
-    ('a',     'а'),
-    ('b',     'б'),
-    ('c',     'ш'),
-    ('d',     'д'),
-    ('e',     'е'),
-    ('f',     'ф'),
-    ('g',     'ж'),
-    ('h',     'г'),
-    ('i',     'і'),
-    ('j',     'й'),
-    ('k',     'к'),
-    ('l',     'л'),
-    ('m',     'м'),
-    ('n',     'н'),
-    ('o',     'о'),
-    ('ö',     '𐰇'),
-    ('p',     'п'),
-    ('q',     'ґ'),
-    ('r',     'р'),
-    ('s',     'с'),
-    ('t',     'т'),
-    ('u',     'у'),
-    ('v',     'в'),
-    ('w',     'вв'),
-    ('x',     'х'),
-    ('y',     '𐰖'),
-    ('z',     'з'),
-    ('\'',    'ʼ'),
-])
-
-patterns_dicts = [(re.compile("(%s)" % '|'.join(dict.keys())), dict) for dict in (
-    bitig_soft_digraph_dict,
-    bitig_apostrophe_digraph_dict,
-    bitig_jotted_digraph_dict,
-    bitig_letter_dict,
-)]
+runic_dict = {
+    "ing": "\u16DD",
+    "ae": "\u16AB",
+    "th": "\u16A6",
+    "ea": "\u16E0",
+    "ia": "\u16e1",
+    "io": "\u16e1",
+    "oe": "\u16DF",
+    "ee": "\u16DF",
+    "gh": "\u16B8",
+    "kh": "\u16E4",
+    "a": "\u16AA",
+    "b": "\u16D2",
+    "c": "\u16B3",
+    "d": "\u16DE",
+    "e": "\u16D6",
+    "f": "\u16A0",
+    "g": "\u16B7",
+    "h": "\u16BB",
+    "i": "\u16C1",
+    "j": "\u16C4",
+    "k": "\u16e3",
+    "l": "\u16DA",
+    "m": "\u16D7",
+    "n": "\u16BE",
+    "o": "\u16A9",
+    "p": "\u16C8",
+    "q": "\u16E2",
+    "r": "\u16B1",
+    "s": "\u16CB",
+    "t": "\u16CF",
+    "u": "\u16A2",
+    #        "v":"\u16A2",
+    "v": "\u16A1",  # medieval version
+    "w": "\u16B9",
+    "x": "\u16C9",
+    "y": "\u16A3",
+    "z": "\u16CE",
+    " ": "\u16eb",
+    ",\u16eb": " \u16ec ",
+    ";\u16eb": " \u16ec ",
+    ":\u16eb": " \u16ec ",
+    ".\u16eb": " \u16ed ",
+    "?\u16eb": " \u16ed ",
+    "!\u16eb": " \u16ed ",
+    "'\u16eb": " \u16eb ",
+    "'": " \u16eb ",
+    ",": " \u16ec ",
+    ";": " \u16ec ",
+    ":": " \u16ec ",
+    ".": " \u16ed ",
+    "?": " \u16ed ",
+    "!": " \u16ed ",
+    '"': "",
+}
 
 
-
-def is_bitik(str):
-    return re.search(r"[a-z\']", str)
-
-
-
-def xlate(s, pattern_dict):
-    regex, dict = pattern_dict
-    return regex.sub(lambda x: dict[x.group()], s)
-
-
-def xlate_all(s):
-    return reduce(xlate, patterns_dicts, s)
-
-
-if cli_mode:
-    bitik = str(sys.argv[1]).lower()
-    if is_bitik(bitik):
-        runes = xlate_all(bitik)
-        print(runes)
-else:
-    @bot.message_handler(content_types=['text', 'photo'])
-    @bot.edited_message_handler(content_types=['text', 'photo'])
-    def reply(message):
-        if message.content_type == 'text':
-            bitik = message.text
-        else:
-            bitik = message.caption
-        bitik = bitik.lower()
-        if is_bitik(bitik):
-            runes = xlate_all(bitik)
-            bot.send_message(message.chat.id, runes)
+def runify(text):
+    text = text.lower()
+    for k, v in runic_dict.items():
+        text = text.replace(k, v)
+    return text
     
     
     
